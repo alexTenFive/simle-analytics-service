@@ -1,13 +1,14 @@
 package queue
 
 import (
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"testcase_v2/server/internal/entity/models"
 	"testcase_v2/server/internal/usecase"
 	"time"
 )
 
-const chTSBufferSize = 300
+const chTSBufferSize = 60
 
 type ramQueue struct {
 	repo   usecase.TimestampRepository
@@ -21,11 +22,17 @@ type ramQueue struct {
 }
 
 func NewRamQueue(repo usecase.TimestampRepository, exit chan chan struct{}, logger *zap.SugaredLogger) *ramQueue {
+	bufferSize := chTSBufferSize
+	cBufferSize := viper.GetInt("server.queue_buffer_size")
+	if cBufferSize > 0 && cBufferSize < 1e5 {
+		logger.Debugf("get buffer size from config: %d", cBufferSize)
+		bufferSize = cBufferSize
+	}
 	rq := &ramQueue{
 		repo:       repo,
-		cache:      make(chan models.Timestamp, chTSBufferSize),
-		tss:        make([]models.Timestamp, 0, chTSBufferSize/2),
-		bufferSize: chTSBufferSize,
+		cache:      make(chan models.Timestamp, bufferSize),
+		tss:        make([]models.Timestamp, 0, bufferSize/2),
+		bufferSize: bufferSize,
 		chExit:     exit,
 		ticker:     time.NewTicker(time.Second),
 		logger:     logger.With("service", "timestamp_ram_queue"),

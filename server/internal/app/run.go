@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+	"github.com/spf13/viper"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,24 +15,29 @@ import (
 	"testcase_v2/server/pkg/server"
 )
 
-const apiBase = "127.0.0.1:8888"
-
 func Run() {
 	log := logger.Init(true)
-	pg, err := postgres.NewPgDB("localhost", "54320", "postgres", "timestamps", "secret")
+	pg, err := postgres.NewPgDB(
+		viper.GetString("postgres.host"),
+		viper.GetString("postgres.port"),
+		viper.GetString("postgres.user"),
+		viper.GetString("postgres.dbname"),
+		viper.GetString("postgres.password"),
+	)
 	if err != nil {
 		log.Errorf("init database: %s", err)
 		os.Exit(1)
 	}
-	exitCh := make(chan chan struct{})
 
 	tsrepo := repository.NewDatabaseRepository(pg, log)
+
+	exitCh := make(chan chan struct{})
 	tsqueue := queue.NewRamQueue(tsrepo, exitCh, log)
 
 	router := http.CreateRouter(usecase.NewTimestampUseCase(tsrepo, tsqueue, log), log)
 
-	srv := server.NewServer(pg, log)
-	if err = srv.Run(apiBase, router); err != nil {
+	srv := server.NewServer(log)
+	if err = srv.Run(fmt.Sprintf("127.0.0.1:%s", viper.GetString("http.port")), router); err != nil {
 		log.Errorf("server.Run(): %s", err)
 	}
 
@@ -38,11 +45,13 @@ func Run() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
 	<-quit
-	srv.Shutdown()
+	if err = srv.Shutdown(); err != nil {
+		log.Errorf("server.Shutdown(): %s", err)
+	}
 	// wait for processing tsqueue
 	confirmExitCh := make(chan struct{})
 	exitCh <- confirmExitCh
 	<-confirmExitCh
 
-	log.Info("server exited properly")
+	log.Info("server turned off")
 }

@@ -1,8 +1,8 @@
 package server
 
 import (
+	"context"
 	"github.com/gorilla/mux"
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 	"net"
 	"net/http"
@@ -10,16 +10,14 @@ import (
 )
 
 type Server struct {
-	db     *sqlx.DB
 	logger *zap.SugaredLogger
 
 	server   *http.Server
 	listener net.Listener
 }
 
-func NewServer(db *sqlx.DB, logger *zap.SugaredLogger) *Server {
+func NewServer(logger *zap.SugaredLogger) *Server {
 	return &Server{
-		db:     db,
 		logger: logger.With("server", "ApiServer"),
 	}
 }
@@ -29,8 +27,7 @@ func (s *Server) Run(addr string, router *mux.Router) error {
 	s.logger.Info("starting server")
 
 	s.server = &http.Server{
-		Handler: router,
-		// Good practice: enforce timeouts for servers you create!
+		Handler:      router,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -48,7 +45,11 @@ func (s *Server) Run(addr string, router *mux.Router) error {
 	return nil
 }
 
-func (s *Server) Shutdown() {
-	s.listener.Close()
-	s.server.Close()
+func (s *Server) Shutdown() error {
+	_ = s.listener.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	return s.server.Shutdown(ctx)
 }
