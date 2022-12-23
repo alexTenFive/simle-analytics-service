@@ -3,7 +3,7 @@ package response
 import (
 	"encoding/json"
 	"net/http"
-	"testcase/server/pkg/httpErrors"
+	"testcase_v2/server/pkg/httpErrors"
 )
 
 func JsonOk(w http.ResponseWriter) {
