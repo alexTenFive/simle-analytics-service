@@ -31,7 +31,7 @@ func NewRamQueue(repo usecase.TimestampRepository, exit chan chan struct{}, logg
 	rq := &ramQueue{
 		repo:       repo,
 		cache:      make(chan models.Timestamp, bufferSize),
-		tss:        make([]models.Timestamp, 0, bufferSize/2),
+		tss:        make([]models.Timestamp, 0, bufferSize),
 		bufferSize: bufferSize,
 		chExit:     exit,
 		ticker:     time.NewTicker(time.Second),
@@ -64,7 +64,7 @@ func (x *ramQueue) storeRoutine() {
 				continue
 			}
 			x.tss = append(x.tss, m)
-			if len(x.tss) >= x.bufferSize/2 {
+			if len(x.tss) >= x.bufferSize {
 				if err := x.process(); err != nil {
 					x.logger.Errorf("cannot store batch: %s", err)
 					continue
