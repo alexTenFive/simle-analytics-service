@@ -5,7 +5,7 @@
 cd simple-analytics-service
 ./service_up.sh
 ```
-this will up database, application and run migrations
+this will up database, application and run migrations<br />
 application url: `http://localhost:8888`
 ```
 /send - send event data. POST request
