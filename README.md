@@ -2,16 +2,16 @@
 ### Run
 ##### First terminal window
 ```
-cd testcase_v2
+cd simple-analytics-service
 ./service_up.sh
 ```
 this will up database, application and run migrations
-##### Second termimal window
+##### Second terminal window
 ```
-cd testcase_v2
+cd simple-analytics-service
 ./test_load.sh
 ```
-this will run http load test (300 requests per second) for 60 seconds
+this will run http load test (300 requests per second) for 60 seconds and place `plot.html` file with test statistics in `simple-analytics-service/cmd/vegeta/reports`
 
 ### Scripts
 ```
