@@ -1,0 +1,12 @@
+postgres:
+  host: "postgres"
+  port: 5432
+  user: "postgres"
+  password: "secret"
+  dbname: "timestamps"
+
+http:
+  port: 8888
+
+server:
+  queue_buffer_size: 300

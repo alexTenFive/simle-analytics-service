@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+
+  postgres:
+    container_name: postgres-instance
+    image: postgres
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'secret'
+      POSTGRES_DB: 'timestamps'
+    ports:
+      - "54320:5432"
+
+  app:
+    build: .
+    container_name: testcase-app-instance
+    image: testcase-app
+    ports:
+      - "8888:8888"
+    depends_on:
+      - postgres
+
+volumes:
+  pg-data:
