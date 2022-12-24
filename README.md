@@ -6,6 +6,11 @@ cd simple-analytics-service
 ./service_up.sh
 ```
 this will up database, application and run migrations
+application url: `http://localhost:8888`
+```
+/send - send event data. POST request
+/avg - get avg value of event data for last 60 seconds
+```
 ##### Second terminal window
 ```
 cd simple-analytics-service
