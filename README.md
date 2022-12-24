@@ -1,4 +1,4 @@
-# Simple analysis service (test)
+# Simple analytics service (test)
 ### Run
 ##### First terminal window
 ```
